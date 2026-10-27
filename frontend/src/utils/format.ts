@@ -1,0 +1,12 @@
+export function formatStatus(value: string): string {
+  return value.replace(/[-_]/g, " ");
+}
+
+export function formatDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Date unavailable";
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}

@@ -1,0 +1,9 @@
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
+
+import type { PromptWeakness } from "../../types/analysis";
+
+type WeaknessListProps = { weaknesses: PromptWeakness[] };
+
+export function WeaknessList({ weaknesses }: WeaknessListProps) {
+  return <section aria-labelledby="weaknesses-heading" className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7"><div className="flex items-start justify-between gap-4"><div><h2 id="weaknesses-heading" className="text-xl font-semibold tracking-tight">Weaknesses</h2><p className="mt-1 text-sm text-slate-500">Gaps the evaluator found in the prompt.</p></div><AlertTriangle size={19} className="text-amber-500" /></div>{weaknesses.length === 0 ? <div className="mt-6 flex items-center gap-3 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-800"><CheckCircle2 size={18} />No weaknesses were returned for this prompt.</div> : <ul className="mt-6 space-y-3">{weaknesses.map((weakness, index) => <li key={`${weakness.title}-${index}`} className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4"><div className="flex items-start gap-3"><span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-400" /><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-semibold">{weakness.title}</h3>{weakness.severity ? <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-700">{weakness.severity}</span> : <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Evaluator note</span>}</div><p className="mt-1 text-sm leading-6 text-slate-600">{weakness.description}</p>{weakness.explanation && <p className="mt-2 text-xs leading-5 text-slate-500">{weakness.explanation}</p>}</div></div></li>)}</ul>}</section>;
+}
