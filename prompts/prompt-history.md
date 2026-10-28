@@ -44,3 +44,11 @@
 - Automated verification: Backend imports passed; `backend/.venv/bin/pytest -q` passed 11 tests; new database Alembic upgrade and read/write checks passed; existing-schema baseline preserved existing data; local health/history API checks passed; CORS and request ID behavior passed.
 - Live provider result: Skipped because `OPENAI_API_KEY` is not configured. No API key or prompt content was logged.
 - Remaining limitation: Docker is not installed. Pytest emitted one Starlette deprecation warning about the current `httpx` TestClient integration; it did not fail the suite.
+
+## Frontend-only presentation demo
+
+- Objective: Remove the frontend's runtime dependency on FastAPI, OpenAI, SQLite, Docker, and backend environment variables so PromptLab works independently for a presentation.
+- Prompt reference: Urgent frontend-only demo conversion request from the project owner.
+- Implementation: Added `services/localPromptAnalyzer.ts` with deterministic six-criterion scoring, conditional weakness/recommendation templates, three selectable examples, and placeholder-based improved prompts. Added `services/localAnalysisHistory.ts` using safe, capped localStorage persistence. Rewired analyzer, history, detail, and dashboard flows to local services and removed obsolete frontend Axios/API client usage.
+- Decisions: Keep backend files untouched for future integration. Use local model metadata (`local-rule-engine`) and rubric version (`local-1.0`) to make demo output transparent. Preserve legacy result components and visual layout.
+- Validation outcome: `npm run lint`, `npm run typecheck`, `npm test -- --run`, and `npm run build` all passed. Seven Vitest files and 15 tests passed. A prior detail-page test failed because a mounted MemoryRouter does not replace its initial route; the test was isolated with unmount/remount and passed on the final run. No external API requests are made by the frontend flow.
