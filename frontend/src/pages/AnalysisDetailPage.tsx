@@ -5,7 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import { AnalysisErrorState } from "../components/analyzer/AnalysisErrorState";
 import { AnalysisResults } from "../components/analyzer/AnalysisResults";
 import { AnalysisSkeleton } from "../components/analyzer/AnalysisSkeleton";
-import { getAnalysis, AnalysisApiError } from "../services/analysisService";
+import { getLocalAnalysis } from "../services/localAnalysisHistory";
 import type { AnalyzePromptResponse } from "../types/analysis";
 import { formatDate } from "../utils/format";
 
@@ -19,20 +19,16 @@ export function AnalysisDetailPage() {
     const controller = new AbortController();
     setLoading(true);
     setError(null);
+    setAnalysis(null);
     if (!id || !/^\d+$/.test(id)) {
       setError("That analysis ID is not valid.");
       setLoading(false);
       return () => controller.abort();
     }
-    void getAnalysis(id, controller.signal)
-      .then((result) => setAnalysis(result))
-      .catch((requestError) => {
-        if (controller.signal.aborted) return;
-        setError(requestError instanceof AnalysisApiError ? requestError.message : "Analysis could not be loaded.");
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
-      });
+    const result = getLocalAnalysis(id);
+    if (result) setAnalysis(result);
+    else setError("This saved analysis could not be found in local history.");
+    setLoading(false);
     return () => controller.abort();
   }, [id]);
 

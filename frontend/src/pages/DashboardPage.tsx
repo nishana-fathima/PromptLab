@@ -2,11 +2,8 @@ import { ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { StatePanel } from "../components/ui/StatePanel";
-import { useApiHealth } from "../hooks/useApiHealth";
 
 export function DashboardPage() {
-  const { data, loading, error } = useApiHealth();
-
   return (
     <div className="space-y-8">
       <section className="max-w-3xl">
@@ -27,11 +24,11 @@ export function DashboardPage() {
           <p className="mt-2 text-sm leading-6 text-slate-500">Clarity, specificity, context, completeness, constraints, and output.</p>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <p className="font-mono text-xs uppercase tracking-wider text-slate-400">Backend status</p>
-          {loading ? <p className="mt-8 text-sm text-slate-500">Checking API...</p> : error ? <p className="mt-8 text-sm text-rose-600">{error}</p> : <p className="mt-8 flex items-center gap-2 text-sm text-emerald-700"><CheckCircle2 size={16} />{data?.service} online</p>}
+          <p className="font-mono text-xs uppercase tracking-wider text-slate-400">Demo status</p>
+          <p className="mt-8 flex items-center gap-2 text-sm text-emerald-700"><CheckCircle2 size={16} />Local demo engine ready</p>
         </div>
       </section>
-      <StatePanel title="Foundation phase" message="The application shell is ready. Prompt analysis, saved history, and AI results are intentionally not implemented yet." />
+      <StatePanel title="Presentation-ready demo" message="Prompt analysis and history run locally in your browser. No backend, API key, or external service is required." />
     </div>
   );
 }

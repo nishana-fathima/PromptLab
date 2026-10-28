@@ -1,31 +1,28 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
-import { getAnalysisHistory } from "../services/analysisService";
 import { HistoryPage } from "./HistoryPage";
-
-vi.mock("../services/analysisService", async () => {
-  const actual = await vi.importActual<typeof import("../services/analysisService")>("../services/analysisService");
-  return { ...actual, getAnalysisHistory: vi.fn() };
-});
-
-const mockedGetHistory = vi.mocked(getAnalysisHistory);
+import { analyzePromptLocally } from "../services/localPromptAnalyzer";
+import { saveLocalAnalysis } from "../services/localAnalysisHistory";
 
 describe("HistoryPage", () => {
-  afterEach(() => vi.clearAllMocks());
+  beforeEach(() => window.localStorage.clear());
 
-  it("renders an empty state from an empty API response", async () => {
-    mockedGetHistory.mockResolvedValue({ items: [], total: 0, limit: 20, offset: 0 });
+  it("renders an empty state from empty local history", async () => {
     render(<MemoryRouter><HistoryPage /></MemoryRouter>);
     expect(await screen.findByText("No analyses yet")).toBeInTheDocument();
   });
 
-  it("renders an API error with retry affordance", async () => {
-    mockedGetHistory.mockRejectedValue(new Error("offline"));
+  it("renders saved analyses from localStorage", async () => {
+    saveLocalAnalysis(analyzePromptLocally("Build a React login page with validation."));
     render(<MemoryRouter><HistoryPage /></MemoryRouter>);
-    await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
-    expect(screen.getByText("History could not be loaded.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /try again/i })).toBeInTheDocument();
+    expect(await screen.findByText("Build a React login page with validation.")).toBeInTheDocument();
+  });
+
+  it("recovers from invalid stored JSON", async () => {
+    window.localStorage.setItem("promptlab.local-analysis-history.v1", "not-json");
+    render(<MemoryRouter><HistoryPage /></MemoryRouter>);
+    expect(await screen.findByText("No analyses yet")).toBeInTheDocument();
   });
 });

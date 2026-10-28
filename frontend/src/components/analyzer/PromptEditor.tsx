@@ -1,7 +1,7 @@
 import { Eraser, FileText, Lightbulb, LoaderCircle, Sparkles } from "lucide-react";
 import { FormEvent, useState } from "react";
 
-const examplePrompt = "Build a responsive React dashboard for tracking monthly engineering metrics. Use TypeScript and Tailwind CSS, include loading and error states, and provide accessible components with tests.";
+import { DEMO_EXAMPLES } from "../../services/localPromptAnalyzer";
 
 type PromptEditorProps = {
   prompt: string;
@@ -20,8 +20,8 @@ export function PromptEditor({ prompt, loading, validationError, onPromptChange,
     if (canSubmit) onSubmit();
   }
 
-  function loadExample() {
-    onPromptChange(examplePrompt);
+  function loadExample(example: string) {
+    onPromptChange(example);
     setShowExample(false);
   }
 
@@ -60,7 +60,7 @@ export function PromptEditor({ prompt, loading, validationError, onPromptChange,
           <button type="button" onClick={() => setShowExample((current) => !current)} disabled={loading} className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-ink focus:outline-none focus:ring-4 focus:ring-violet/10 disabled:opacity-50">
             <Lightbulb size={16} /> Use an example
           </button>
-          {showExample && <div className="absolute bottom-12 left-0 z-10 w-72 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-xl shadow-slate-200/70 sm:w-96"><p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Starter prompt</p><p className="mt-2 text-sm leading-6 text-slate-600">{examplePrompt}</p><button type="button" onClick={loadExample} className="mt-3 text-sm font-semibold text-violet hover:text-violet/80">Load example</button></div>}
+          {showExample && <div className="absolute bottom-12 left-0 z-10 w-80 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-xl shadow-slate-200/70 sm:w-[27rem]"><p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Demo examples</p><div className="mt-3 space-y-2">{DEMO_EXAMPLES.map((example) => <button key={example.label} type="button" onClick={() => loadExample(example.prompt)} className="block w-full rounded-xl border border-slate-100 p-3 text-left transition hover:border-violet/30 hover:bg-violet/5 focus:outline-none focus:ring-4 focus:ring-violet/10"><span className="block text-xs font-semibold text-violet">{example.label}</span><span className="mt-1 block text-sm leading-5 text-slate-600">{example.prompt}</span></button>)}</div></div>}
         </div>
         <div className="flex flex-col-reverse gap-3 sm:flex-row">
           <button type="button" onClick={() => onPromptChange("")} disabled={loading || prompt.length === 0} className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-violet/10 disabled:cursor-not-allowed disabled:opacity-40"><Eraser size={16} />Clear</button>

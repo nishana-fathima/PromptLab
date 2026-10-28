@@ -1,27 +1,27 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
-import { getAnalysis } from "../services/analysisService";
+import { analyzePromptLocally } from "../services/localPromptAnalyzer";
+import { saveLocalAnalysis } from "../services/localAnalysisHistory";
 import { AnalysisDetailPage } from "./AnalysisDetailPage";
 
-vi.mock("../services/analysisService", async () => {
-  const actual = await vi.importActual<typeof import("../services/analysisService")>("../services/analysisService");
-  return { ...actual, getAnalysis: vi.fn() };
-});
-
-const mockedGetAnalysis = vi.mocked(getAnalysis);
-
 describe("AnalysisDetailPage", () => {
-  it("rejects an invalid persisted analysis ID without making a request", async () => {
-    render(<MemoryRouter initialEntries={["/history/nope"]}><Routes><Route path="/history/:id" element={<AnalysisDetailPage />} /></Routes></MemoryRouter>);
-    expect(await screen.findByText("That analysis ID is not valid.")).toBeInTheDocument();
-    expect(mockedGetAnalysis).not.toHaveBeenCalled();
+  beforeEach(() => window.localStorage.clear());
+
+  it("renders a persisted analysis by ID", async () => {
+    const analysis = analyzePromptLocally("Build a React settings page.");
+    saveLocalAnalysis(analysis);
+    render(<MemoryRouter initialEntries={[`/history/${analysis.id}`]}><Routes><Route path="/history/:id" element={<AnalysisDetailPage />} /></Routes></MemoryRouter>);
+    expect(await screen.findByText(`Analysis #${analysis.id}`)).toBeInTheDocument();
+    expect(screen.getByText("Build a React settings page.")).toBeInTheDocument();
   });
 
-  it("shows a not-found error from the detail API", async () => {
-    mockedGetAnalysis.mockRejectedValue(new Error("Analysis could not be loaded."));
-    render(<MemoryRouter initialEntries={["/history/99"]}><Routes><Route path="/history/:id" element={<AnalysisDetailPage />} /></Routes></MemoryRouter>);
-    expect(await screen.findByText("Analysis could not be loaded.")).toBeInTheDocument();
+  it("handles invalid and missing IDs without external requests", async () => {
+    const { unmount } = render(<MemoryRouter initialEntries={["/history/nope"]}><Routes><Route path="/history/:id" element={<AnalysisDetailPage />} /></Routes></MemoryRouter>);
+    expect(await screen.findByText("That analysis ID is not valid.")).toBeInTheDocument();
+    unmount();
+    render(<MemoryRouter initialEntries={["/history/999"]}><Routes><Route path="/history/:id" element={<AnalysisDetailPage />} /></Routes></MemoryRouter>);
+    expect(await screen.findByText("This saved analysis could not be found in local history.")).toBeInTheDocument();
   });
 });
