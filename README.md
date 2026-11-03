@@ -2,7 +2,7 @@
 
 PromptLab is an AI-assisted coding prompt quality checker. It evaluates prompts against a documented heuristic rubric and presents improvement recommendations, revised prompts, and persisted analysis history.
 
-This repository contains a presentation-ready frontend-only demo. Prompt analysis uses deterministic local TypeScript rules, and saved analyses use browser `localStorage`. The backend remains in the repository for future integration but is not required to run the demo.
+This repository contains a presentation-ready frontend-only demo plus an optional FastAPI backend and MCP integration. The demo uses deterministic local TypeScript rules and browser `localStorage`; the backend persists AI evaluations in SQLite and exposes the same domain through MCP for AI hosts.
 
 ## Stack
 
@@ -10,6 +10,7 @@ This repository contains a presentation-ready frontend-only demo. Prompt analysi
 - React Router, Lucide React
 - FastAPI, Uvicorn, SQLAlchemy, Pydantic (future backend integration)
 - SQLite and OpenAI SDK (future backend integration)
+- Model Context Protocol (MCP) Python SDK for AI-host integration
 
 ## Frontend-only setup
 
@@ -89,3 +90,47 @@ docker compose up --build
 The backend and production frontend container configuration is retained for future integration. It is not required for the demo. Never put `OPENAI_API_KEY` in frontend build arguments.
 
 See `docs/architecture.md`, `docs/context-management.md`, and `docs/evaluation-rubric.md` for project decisions.
+
+## MCP AI-host integration
+
+Install backend dependencies, configure the backend environment, and apply the
+database migration before launching an MCP host:
+
+```bash
+cd backend
+cp .env.example .env
+source .venv/bin/activate
+pip install -r requirements.txt
+alembic upgrade head
+```
+
+The MCP server uses stdio and is launched by the host, not as an HTTP route.
+For Claude Desktop, add this server entry to its MCP configuration (adjust the
+absolute paths for your machine):
+
+```json
+{
+  "mcpServers": {
+    "promptlab": {
+      "command": "/home/nishana/Desktop/PromptLab/backend/.venv/bin/python",
+      "args": ["-m", "app.mcp_server"],
+      "cwd": "/home/nishana/Desktop/PromptLab/backend"
+    }
+  }
+}
+```
+
+The host can then discover `get_rubric` and ask PromptLab to evaluate a prompt
+with `analyze_prompt`, inspect saved results with `list_analyses`, or retrieve a
+specific result with `get_analysis`. Keep `OPENAI_API_KEY` in `backend/.env` or
+the host process environment; never add it to the frontend configuration.
+
+To demonstrate protocol-level host discovery without a model, run:
+
+```bash
+cd backend
+./.venv/bin/python mcp_host_demo.py
+```
+
+It starts PromptLab as an MCP subprocess, initializes a session, lists the
+tools, and calls `get_rubric`.

@@ -6,8 +6,9 @@ The project is split into two independently runnable applications:
 
 ```text
 React/Vite frontend --HTTP/JSON--> FastAPI backend --SQLAlchemy--> SQLite
-                                          |
-                                           +--> OpenAI structured evaluation
+                                           |
+                                            +--> OpenAI structured evaluation
+AI host --MCP stdio--> PromptLab MCP server --reuses--> backend services/database
 ```
 
 The frontend owns presentation, routing, browser-safe configuration, and API calls. The backend owns configuration, database sessions, validation, error handling, and all provider credentials.
@@ -51,6 +52,16 @@ The history list includes `score_interpretation` as an additive response field. 
 - Weaknesses remain JSON data. Legacy string entries and new `{description, severity}` objects are both accepted; legacy entries retain an unset severity.
 - Idempotency keys are not implemented in this phase. The current frontend prevents concurrent duplicate submissions, and there is no existing client retry-key contract. A future retry-safe API should add a persisted request key and payload fingerprint together rather than deduplicating by prompt text.
 - OpenAI access remains backend-only and uses a bounded timeout.
+
+## MCP integration
+
+`backend/app/mcp_server.py` is a separate stdio MCP server. AI hosts launch it
+as a subprocess with the backend virtual environment and can discover four
+tools: `analyze_prompt`, `list_analyses`, `get_analysis`, and `get_rubric`.
+The server reuses the existing evaluation service and SQLAlchemy session
+factory; it does not duplicate analysis rules or add a second persistence
+format. MCP receives no API key because the server reads `OPENAI_API_KEY` from
+its own environment.
 
 ## Deferred decisions
 

@@ -52,3 +52,10 @@
 - Implementation: Added `services/localPromptAnalyzer.ts` with deterministic six-criterion scoring, conditional weakness/recommendation templates, three selectable examples, and placeholder-based improved prompts. Added `services/localAnalysisHistory.ts` using safe, capped localStorage persistence. Rewired analyzer, history, detail, and dashboard flows to local services and removed obsolete frontend Axios/API client usage.
 - Decisions: Keep backend files untouched for future integration. Use local model metadata (`local-rule-engine`) and rubric version (`local-1.0`) to make demo output transparent. Preserve legacy result components and visual layout.
 - Validation outcome: `npm run lint`, `npm run typecheck`, `npm test -- --run`, and `npm run build` all passed. Seven Vitest files and 15 tests passed. A prior detail-page test failed because a mounted MemoryRouter does not replace its initial route; the test was isolated with unmount/remount and passed on the final run. No external API requests are made by the frontend flow.
+
+## MCP architecture and integration
+
+- Objective: Implement functional MCP tools and demonstrate PromptLab integration with an AI host.
+- Prompt reference: MCP Architecture & Integration implementation request from the project owner.
+- Decisions: Use the official Python MCP SDK with stdio transport, keep MCP separate from FastAPI, reuse existing evaluation/database services, and expose analysis plus rubric/history tools without exposing provider credentials.
+- Validation outcome: Frontend lint, typecheck, 15 tests, and production build passed; backend pytest passed with the MCP test skipped because the environment has no `mcp` package or pip installer. Python compileall and diff checks passed. MCP protocol execution remains pending dependency installation.
