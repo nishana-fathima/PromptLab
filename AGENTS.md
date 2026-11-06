@@ -3,9 +3,9 @@
 ## Stack and architecture
 
 - Use React, Vite, TypeScript, Tailwind CSS, React Router, Axios, and Lucide React in `frontend/`.
-- Use FastAPI, SQLAlchemy, Pydantic, pydantic-settings, SQLite, and pytest in `backend/`.
+- Use Express, TypeScript, Mongoose, MongoDB, Zod, and Vitest in `backend-node/`.
 - Keep HTTP routes thin. Put reusable behavior in services and validate external data at boundaries.
-- Keep OpenAI access server-side only. Never expose `OPENAI_API_KEY` to the frontend.
+- Keep Gemini access server-side only. Never expose `GEMINI_API_KEY` to the frontend.
 
 ## Coding conventions
 

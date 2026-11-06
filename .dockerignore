@@ -4,9 +4,8 @@
 .git
 node_modules
 frontend/dist
-backend/.venv
-backend/__pycache__
-backend/.pytest_cache
+backend-node/node_modules
+backend-node/dist
 *.db
 *.sqlite
 *.sqlite3

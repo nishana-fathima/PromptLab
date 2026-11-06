@@ -4,8 +4,8 @@ import { AnalysisErrorState } from "../components/analyzer/AnalysisErrorState";
 import { AnalysisResults } from "../components/analyzer/AnalysisResults";
 import { AnalysisSkeleton } from "../components/analyzer/AnalysisSkeleton";
 import { PromptEditor } from "../components/analyzer/PromptEditor";
-import { analyzePromptLocally } from "../services/localPromptAnalyzer";
 import { saveLocalAnalysis } from "../services/localAnalysisHistory";
+import { apiPost } from "../services/api";
 import type { AnalyzePromptResponse } from "../types/analysis";
 
 export function AnalyzePage() {
@@ -37,9 +37,8 @@ export function AnalyzePage() {
     setLoading(true);
 
     try {
-      await new Promise<void>((resolve) => window.setTimeout(resolve, 500));
       if (controller.signal.aborted) return;
-      const result = analyzePromptLocally(prompt.trim());
+      const result = await apiPost<AnalyzePromptResponse>("/ai/analyze", { prompt: prompt.trim() });
       saveLocalAnalysis(result);
       if (!controller.signal.aborted) setAnalysis(result);
     } catch (requestError) {

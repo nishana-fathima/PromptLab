@@ -59,3 +59,34 @@
 - Prompt reference: MCP Architecture & Integration implementation request from the project owner.
 - Decisions: Use the official Python MCP SDK with stdio transport, keep MCP separate from FastAPI, reuse existing evaluation/database services, and expose analysis plus rubric/history tools without exposing provider credentials.
 - Validation outcome: Frontend lint, typecheck, 15 tests, and production build passed; backend pytest passed with the MCP test skipped because the environment has no `mcp` package or pip installer. Python compileall and diff checks passed. MCP protocol execution remains pending dependency installation.
+## OpenCode implementation — Full-stack AI application
+
+- Audit: the repository contained a React/Vite demo, localStorage analysis history, and a separate FastAPI/SQLite backend. No authentication or prompt-management domain existed.
+- Implementation: added `backend-node/` with Express, TypeScript, MongoDB/Mongoose models, HTTP-only JWT authentication, prompt CRUD, immutable versions, AI execution/improvement, quota enforcement, execution history, comparison, and dashboard endpoints. Added frontend API/auth/query integration while preserving the existing UI structure.
+- Validation: pending frontend and backend TypeScript/build verification.
+## Gemini provider integration
+
+- Replaced the Node backend's OpenAI-only call path with the official `@google/genai` SDK.
+- Added server-only `GEMINI_API_KEY` and `GEMINI_MODEL` configuration, defaulting to `gemini-2.5-flash`.
+- Added validated structured `/api/v1/ai/analyze` output, Gemini provider error mapping, AI request rate limiting, and per-user daily quotas.
+- The Analyze Prompt frontend now consumes Gemini analysis directly; no local scoring is used for submitted analysis.
+- Validation: pending build and automated checks; live Gemini verification requires a configured key and MongoDB.
+## Gemini configuration diagnostic
+
+- Confirmed `backend-node/src/config.ts` loads `backend-node/.env` before provider initialization.
+- Confirmed `AI_PROVIDER` defaults to and validates as `gemini`; `GEMINI_MODEL` defaults to `gemini-2.5-flash`.
+- Added a safe `aiConfigured` health field and startup log that expose only configuration status, never the key.
+- The workspace has no `backend-node/.env`, so live Analyze verification remains blocked until `GEMINI_API_KEY` is added there.
+- Validation: backend build passed; configuration status checks passed with and without a test environment key.
+## Gemini model availability fix
+
+- Queried the configured API project with the official `@google/genai` model-list API.
+- Confirmed `gemini-2.5-flash-lite` returns a real 404 for this key because it is unavailable to new users, while `gemini-3.1-flash-lite` supports `generateContent` and structured JSON.
+- Updated the backend default and local backend environment to `gemini-3.1-flash-lite`.
+- Added safe provider logging and distinct authentication, permission, model, quota, and temporary-provider-busy errors.
+- Real structured analysis succeeded with six dimensions, an improved prompt, and token usage metadata.
+## Cleanup
+
+- Removed the unused OpenAI dependency from `backend-node`; Gemini is now the only active Node AI provider.
+- Retained local analyzer/history modules because they are still referenced by tests, history views, and demo examples; removed the obsolete Python backend and its Docker/architecture files.
+- Retained generated build and dependency directories as ignored local artifacts rather than deleting user workspace caches.

@@ -2,25 +2,30 @@
 
 PromptLab is an AI-assisted coding prompt quality checker. It evaluates prompts against a documented heuristic rubric and presents improvement recommendations, revised prompts, and persisted analysis history.
 
-This repository contains a presentation-ready frontend-only demo plus an optional FastAPI backend and MCP integration. The demo uses deterministic local TypeScript rules and browser `localStorage`; the backend persists AI evaluations in SQLite and exposes the same domain through MCP for AI hosts.
+This repository contains the PromptLab React frontend and the production-oriented Express/MongoDB API in `backend-node/`.
 
 ## Stack
 
 - React, Vite, TypeScript, Tailwind CSS
 - React Router, Lucide React
-- FastAPI, Uvicorn, SQLAlchemy, Pydantic (future backend integration)
-- SQLite and OpenAI SDK (future backend integration)
-- Model Context Protocol (MCP) Python SDK for AI-host integration
+- Express, MongoDB, Mongoose, JWT cookies, and Zod (`backend-node/`)
+- Google Gemini via the official `@google/genai` SDK
 
-## Frontend-only setup
+## Full-stack setup
 
 ```bash
+cd backend-node
+npm install
+cp .env.example .env
+npm run dev
+
+# In a second terminal
 cd frontend
 npm install
 npm run dev
 ```
 
-No API key, Python environment, SQLite database, Docker, or `.env` file is required. The frontend does not call FastAPI or any external service.
+Start MongoDB locally or set `MONGODB_URI` to a reachable MongoDB instance. Set `GEMINI_API_KEY` to enable AI execution and improvement. The default `GEMINI_MODEL` is `gemini-3.1-flash-lite`, selected from the models exposed by the configured API project. Availability and free-tier quota are controlled by Google. Run `npm run models:list` inside `backend-node` to inspect the models exposed by your key. The API returns a clear configuration error when the key is absent; it does not fabricate AI responses.
 
 ## Run
 
@@ -44,9 +49,9 @@ npm run build
 
 The backend remains separately testable for future integration, but is not part of the demo startup path.
 
-## Demo Mode
+## Legacy Demo Mode
 
-The analyzer displays `Demo Mode — Local Rule-Based Analysis`. It evaluates prompts using local scoring rules and predefined improvement templates. No external AI API is used.
+The legacy local analyzer remains in the source for compatibility and test coverage, but the active analyzer requests prompt improvement through the authenticated backend.
 
 The local rubric is:
 
@@ -68,69 +73,7 @@ Improved prompts are labeled `Template-based improved prompt` and use placeholde
 
 Completed analyses are stored under a versioned localStorage key and limited to 50 records. Invalid stored JSON is safely discarded. History survives browser refresh and can be cleared from the History page with confirmation.
 
-## Backend migrations
+## Gemini configuration
 
-Back up an existing SQLite file before applying migrations:
-
-```bash
-cd backend
-cp promptlab.db promptlab.db.backup
-alembic upgrade head
-```
-
-The backend migration verifies an existing `analyses` table before baselining it and never drops or recreates user data. These commands are not required for the frontend-only demo.
-
-## Backend Docker configuration
-
-```bash
-cp .env.example .env
-docker compose up --build
-```
-
-The backend and production frontend container configuration is retained for future integration. It is not required for the demo. Never put `OPENAI_API_KEY` in frontend build arguments.
-
-See `docs/architecture.md`, `docs/context-management.md`, and `docs/evaluation-rubric.md` for project decisions.
-
-## MCP AI-host integration
-
-Install backend dependencies, configure the backend environment, and apply the
-database migration before launching an MCP host:
-
-```bash
-cd backend
-cp .env.example .env
-source .venv/bin/activate
-pip install -r requirements.txt
-alembic upgrade head
-```
-
-The MCP server uses stdio and is launched by the host, not as an HTTP route.
-For Claude Desktop, add this server entry to its MCP configuration (adjust the
-absolute paths for your machine):
-
-```json
-{
-  "mcpServers": {
-    "promptlab": {
-      "command": "/home/nishana/Desktop/PromptLab/backend/.venv/bin/python",
-      "args": ["-m", "app.mcp_server"],
-      "cwd": "/home/nishana/Desktop/PromptLab/backend"
-    }
-  }
-}
-```
-
-The host can then discover `get_rubric` and ask PromptLab to evaluate a prompt
-with `analyze_prompt`, inspect saved results with `list_analyses`, or retrieve a
-specific result with `get_analysis`. Keep `OPENAI_API_KEY` in `backend/.env` or
-the host process environment; never add it to the frontend configuration.
-
-To demonstrate protocol-level host discovery without a model, run:
-
-```bash
-cd backend
-./.venv/bin/python mcp_host_demo.py
-```
-
-It starts PromptLab as an MCP subprocess, initializes a session, lists the
-tools, and calls `get_rubric`.
+Set `GEMINI_API_KEY` only in `backend-node/.env`. The key is server-side only.
+Use `npm run models:list` from `backend-node` to inspect models available to the configured API project.
